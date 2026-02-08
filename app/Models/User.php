@@ -40,9 +40,10 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     }
 
     // 1. تحديد الصالونات التي ينتمي لها المستخدم
-    public function getTenants(Panel $panel): Collection
+    // إعداد الـ Multi-tenancy (سنفترض أن Tenant هو موديل Salon)
+    public function getTenants(Panel $panel): array|Collection
     {
-        return $this->salons;
+        return $this->salons; // العلاقة مع الصالونات
     }
 
     // 2. التحقق من إمكانية الوصول للصالون
@@ -59,7 +60,15 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // سنقوم بتخصيص هذا لاحقاً بناءً على الأدوار (DevTest, SuperAdmin, Owner...)
-        return true;
+        if ($panel->getId() === 'admin') {
+            return $this->hasRole(['DevTest', 'SuperAdmin']);
+        }
+
+        if ($panel->getId() === 'app') {
+            // Owners, Managers, Employees يدخلون لوحة التطبيق
+            return $this->hasRole(['DevTest', 'Owner', 'Manager', 'Employee']);
+        }
+
+        return false;
     }
 }
