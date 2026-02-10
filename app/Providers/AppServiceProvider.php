@@ -23,8 +23,9 @@ class AppServiceProvider extends ServiceProvider
 
         // السماح لـ DevTest بكل شيء ضمنياً
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('DevTest') ? true : null;
+            return $user->hasRoleInsensitive('DevTest') ? true : null;
         });
 
     }
 }
+

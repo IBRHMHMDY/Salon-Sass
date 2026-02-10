@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('branches', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('salon_id')->constrained()->cascadeOnDelete(); // الرابط بالـ Tenant
+            $table->foreignId('salon_id')->constrained()->cascadeOnDelete(); // Tenant Scope
             $table->string('name');
-            $table->string('address')->nullable();
-            $table->string('phone')->nullable();
-            $table->boolean('is_main_branch')->default(false);
+            $table->string('image')->nullable(); // أيقونة للقسم (للموبايل)
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('branches');
+        Schema::dropIfExists('categories');
     }
 };

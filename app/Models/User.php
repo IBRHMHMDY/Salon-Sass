@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,6 +23,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         'name',
         'email',
         'password',
+        'branch_id',
     ];
 
     protected $hidden = [
@@ -39,20 +39,50 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         ];
     }
 
-    // 1. تحديد الصالونات التي ينتمي لها المستخدم
-    // إعداد الـ Multi-tenancy (سنفترض أن Tenant هو موديل Salon)
     public function getTenants(Panel $panel): array|Collection
     {
-        return $this->salons; // العلاقة مع الصالونات
+        if ($panel->getId() === 'admin') {
+            return $this->salons;
+        }
+
+        if ($panel->getId() === 'app') {
+            if ($this->hasRoleInsensitive('DevTest')) {
+                return Branch::query()->get();
+            }
+
+            if ($this->hasRoleInsensitive('Owner')) {
+                return Branch::query()
+                    ->whereIn('salon_id', $this->salons()->pluck('salons.id'))
+                    ->get();
+            }
+
+            return $this->branch ? collect([$this->branch]) : collect();
+        }
+
+        return [];
     }
 
-    // 2. التحقق من إمكانية الوصول للصالون
     public function canAccessTenant(Model $tenant): bool
     {
-        return $this->salons->contains($tenant);
+        if ($tenant instanceof Salon) {
+            return $this->salons->contains($tenant);
+        }
+
+        if ($tenant instanceof Branch) {
+            if ($this->hasRoleInsensitive('DevTest')) {
+                return true;
+            }
+
+            if ($this->hasRoleInsensitive('Owner')) {
+                return $this->salons()->whereKey($tenant->salon_id)->exists();
+            }
+
+            return (int) $this->branch_id === (int) $tenant->getKey();
+        }
+
+        return false;
     }
 
-    // 3. تطبيق Tenancy
     public function salons(): BelongsToMany
     {
         return $this->belongsToMany(Salon::class);
@@ -61,14 +91,44 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasRole(['DevTest', 'SuperAdmin']);
+            return $this->hasAnyRoleInsensitive(['DevTest', 'SuperAdmin']);
         }
 
         if ($panel->getId() === 'app') {
-            // Owners, Managers, Employees يدخلون لوحة التطبيق
-            return $this->hasRole(['DevTest', 'Owner', 'Manager', 'Employee']);
+            return $this->hasAnyRoleInsensitive(['DevTest', 'Owner', 'Manager', 'Employee']);
         }
 
         return false;
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class);
+    }
+
+    public function hasRoleInsensitive(string $role): bool
+    {
+        return $this->getRoleNames()->contains(
+            fn (string $userRole): bool => strcasecmp($userRole, $role) === 0
+        );
+    }
+
+    /**
+     * @param  array<int, string>  $roles
+     */
+    public function hasAnyRoleInsensitive(array $roles): bool
+    {
+        $normalizedRoles = collect($roles)
+            ->map(fn (string $role): string => mb_strtolower($role))
+            ->values();
+
+        return $this->getRoleNames()->contains(
+            fn (string $userRole): bool => $normalizedRoles->contains(mb_strtolower($userRole))
+        );
     }
 }

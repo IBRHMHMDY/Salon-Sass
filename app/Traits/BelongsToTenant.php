@@ -10,17 +10,21 @@ trait BelongsToTenant
 {
     protected static function bootBelongsToTenant(): void
     {
-        // إضافة Global Scope وتفعيله فقط إذا كنا داخل Tenant Context
-        static::addGlobalScope('tenant', function (Builder $builder) {
-            if (Filament::getTenant()) {
-                $builder->where('salon_id', Filament::getTenant()->id);
+        static::addGlobalScope('tenant', function (Builder $builder): void {
+            $tenant = Filament::getTenant();
+            $salonId = $tenant?->salon_id ?? $tenant?->id;
+
+            if ($salonId) {
+                $builder->where('salon_id', $salonId);
             }
         });
 
-        // تعبئة salon_id تلقائياً عند الإنشاء
-        static::creating(function ($model) {
-            if (Filament::getTenant()) {
-                $model->salon_id = Filament::getTenant()->id;
+        static::creating(function ($model): void {
+            $tenant = Filament::getTenant();
+            $salonId = $tenant?->salon_id ?? $tenant?->id;
+
+            if ($salonId) {
+                $model->salon_id = $salonId;
             }
         });
     }

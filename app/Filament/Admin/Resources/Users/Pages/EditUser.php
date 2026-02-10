@@ -3,10 +3,10 @@
 namespace App\Filament\Admin\Resources\Users\Pages;
 
 use App\Filament\Admin\Resources\Users\UserResource;
+use App\Filament\Shared\Pages\EditRecordRedirectToIndex;
 use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
 
-class EditUser extends EditRecord
+class EditUser extends EditRecordRedirectToIndex
 {
     protected static string $resource = UserResource::class;
 

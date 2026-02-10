@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Salons\Pages;
+namespace App\Filament\App\Resources\Users\Pages;
 
-use App\Filament\Admin\Resources\Salons\SalonResource;
+use App\Filament\App\Resources\Users\UserResource;
 use App\Filament\Shared\Pages\EditRecordRedirectToIndex;
 use Filament\Actions\DeleteAction;
 
-class EditSalon extends EditRecordRedirectToIndex
+class EditUser extends EditRecordRedirectToIndex
 {
-    protected static string $resource = SalonResource::class;
+    protected static string $resource = UserResource::class;
 
     protected function getHeaderActions(): array
     {

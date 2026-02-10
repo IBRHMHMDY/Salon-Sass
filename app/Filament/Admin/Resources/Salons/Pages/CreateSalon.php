@@ -3,9 +3,9 @@
 namespace App\Filament\Admin\Resources\Salons\Pages;
 
 use App\Filament\Admin\Resources\Salons\SalonResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Shared\Pages\CreateRecordRedirectToIndex;
 
-class CreateSalon extends CreateRecord
+class CreateSalon extends CreateRecordRedirectToIndex
 {
     protected static string $resource = SalonResource::class;
 }

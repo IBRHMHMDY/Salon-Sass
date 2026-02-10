@@ -3,9 +3,9 @@
 namespace App\Filament\Admin\Resources\Users\Pages;
 
 use App\Filament\Admin\Resources\Users\UserResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Shared\Pages\CreateRecordRedirectToIndex;
 
-class CreateUser extends CreateRecord
+class CreateUser extends CreateRecordRedirectToIndex
 {
     protected static string $resource = UserResource::class;
 

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->foreignId('latest_salon_id')->nullable()->constrained('salons'); // لتذكر آخر صالون دخله المستخدم
+
             $table->rememberToken();
             $table->timestamps();
         });
